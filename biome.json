@@ -17,17 +17,35 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "a11y": {
+        "noNoninteractiveElementInteractions": "error"
+      },
+      "correctness": {
+        "noUndeclaredDependencies": "off",
+        "useImportExtensions": "off"
+      },
+      "style": {
+        "useImportType": "error"
+      }
     },
     "domains": {
-      "next": "recommended",
-      "react": "recommended"
+      "next": "all",
+      "project": "all",
+      "react": "all"
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "indentStyle": "space",
+      "quoteStyle": "single"
     }
   },
   "assist": {
     "actions": {
       "source": {
-        "organizeImports": "on"
+        "organizeImports": "on",
+        "useSortedAttributes": "on"
       }
     }
   }
