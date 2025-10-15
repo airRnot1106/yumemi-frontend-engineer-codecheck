@@ -1,0 +1,232 @@
+openapi: 3.1.0
+info:
+  title: 都道府県別人口構成API
+  version: 1.0.0
+  description: |
+    RESAS(地域経済分析システム)のデータを元にした、都道府県別の人口構成を取得するAPI。
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /api/v1/prefectures:
+    get:
+      summary: 都道府県一覧取得
+      description: 全都道府県の一覧を取得します
+      operationId: getPrefectures
+      tags:
+        - prefectures
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrefecturesResponse"
+        "400":
+          description: リクエストが不正です
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: 認証エラーです
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: データが見つかりません
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: サーバー内部エラーです
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/population/composition/perYear:
+    get:
+      summary: 都道府県別人口構成取得
+      description: 指定された都道府県の年齢別人口構成データを取得します
+      operationId: getPopulationCompositionPerYear
+      tags:
+        - population
+      parameters:
+        - name: prefCode
+          in: query
+          required: true
+          description: 都道府県コード
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 47
+            example: 13
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PopulationCompositionPerYearResponse"
+        "400":
+          description: リクエストが不正です
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: 認証エラーです
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: データが見つかりません
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: サーバー内部エラーです
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+      description: |
+        API認証用のキー。
+
+  schemas:
+    Prefecture:
+      type: object
+      required:
+        - prefCode
+        - prefName
+      properties:
+        prefCode:
+          type: integer
+          description: 都道府県コード
+          example: 13
+          minimum: 1
+          maximum: 47
+        prefName:
+          type: string
+          description: 都道府県名
+          example: 東京都
+
+    PrefecturesResponse:
+      type: object
+      required:
+        - message
+        - result
+      properties:
+        message:
+          type: string
+          nullable: true
+          description: レスポンスメッセージ
+          example: null
+        result:
+          type: array
+          description: 都道府県のリスト
+          items:
+            $ref: "#/components/schemas/Prefecture"
+
+    PopulationData:
+      type: object
+      required:
+        - year
+        - value
+      properties:
+        year:
+          type: integer
+          description: 年度
+          example: 1960
+        value:
+          type: integer
+          description: 人口値
+          example: 5039206
+        rate:
+          type: number
+          format: float
+          description: 人口割合(%)
+          example: 17.2
+
+    PopulationComposition:
+      type: object
+      required:
+        - label
+        - data
+      properties:
+        label:
+          type: string
+          description: 年齢区分ラベル
+          enum:
+            - 総人口
+            - 年少人口
+            - 生産年齢人口
+            - 老年人口
+          example: 総人口
+        data:
+          type: array
+          description: 年度ごとの人口データ
+          items:
+            $ref: "#/components/schemas/PopulationData"
+
+    PopulationCompositionResult:
+      type: object
+      required:
+        - boundaryYear
+        - data
+      properties:
+        boundaryYear:
+          type: integer
+          description: 実績値と推計値の境界年
+          example: 2015
+        data:
+          type: array
+          description: 年齢区分別の人口構成データ
+          items:
+            $ref: "#/components/schemas/PopulationComposition"
+
+    PopulationCompositionPerYearResponse:
+      type: object
+      required:
+        - message
+        - result
+      properties:
+        message:
+          type: string
+          nullable: true
+          description: レスポンスメッセージ
+          example: null
+        result:
+          $ref: "#/components/schemas/PopulationCompositionResult"
+
+    Error:
+      type: object
+      properties:
+        statusCode:
+          type: string
+          description: HTTPステータスコード
+          example: "400"
+        message:
+          type: string
+          description: エラーメッセージ
+          example: リクエストが不正です
+        description:
+          type: string
+          description: エラーの詳細説明
+          example: パラメータが不足しています
