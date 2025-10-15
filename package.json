@@ -7,19 +7,23 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "biome check",
+    "lint:markup": "markuplint \"src/**/*.{html,jsx,tsx}\" --fix --problem-only",
     "format": "biome format --write",
     "check": "biome check --write"
   },
   "dependencies": {
+    "next": "15.5.5",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "next": "15.5.5"
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@biomejs/biome": "2.2.0",
+    "@markuplint/jsx-parser": "^4.7.21",
+    "@markuplint/react-spec": "^4.5.21",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@biomejs/biome": "2.2.0"
+    "markuplint": "^4.13.1",
+    "typescript": "^5"
   }
 }
