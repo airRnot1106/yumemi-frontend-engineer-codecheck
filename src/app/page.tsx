@@ -1,13 +1,11 @@
 import Image from 'next/image';
-import styles from './page.module.css';
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
+    <div>
+      <main>
         <Image
           alt="Next.js logo"
-          className={styles.logo}
           height={38}
           priority
           src="/next.svg"
@@ -20,16 +18,14 @@ export default function Home() {
           <li>Save and see your changes instantly.</li>
         </ol>
 
-        <div className={styles.ctas}>
+        <div>
           <a
-            className={styles.primary}
             href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
             rel="noopener noreferrer"
             target="_blank"
           >
             <Image
               alt="Vercel logomark"
-              className={styles.logo}
               height={20}
               src="/vercel.svg"
               width={20}
@@ -37,7 +33,6 @@ export default function Home() {
             Deploy now
           </a>
           <a
-            className={styles.secondary}
             href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
             rel="noopener noreferrer"
             target="_blank"
@@ -46,7 +41,7 @@ export default function Home() {
           </a>
         </div>
       </main>
-      <footer className={styles.footer}>
+      <footer>
         <a
           href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
           rel="noopener noreferrer"

@@ -44,3 +44,7 @@ next-env.d.ts
 result
 .direnv
 .pre-commit-config.yaml
+
+# panda
+styled-system
+styled-system-studio
