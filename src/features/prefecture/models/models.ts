@@ -1,4 +1,6 @@
+import { R } from '@praha/byethrow';
 import z from 'zod';
+import type { getPrefecturesResponseSuccess } from '../../../libs/generated/clients/prefectures';
 
 declare const PrefectureCodeBrand: unique symbol;
 export const PrefectureCode = z
@@ -22,6 +24,16 @@ export const Prefecture = z
   })
   .brand<typeof PrefectureBrand>();
 export type Prefecture = z.infer<typeof Prefecture>;
+
+export const fromResponse = (response: getPrefecturesResponseSuccess) =>
+  R.collect(
+    response.data.result
+      .map(({ prefCode, prefName }) => ({
+        prefectureCode: prefCode,
+        prefectureName: prefName,
+      }))
+      .map(R.parse(Prefecture)),
+  );
 
 if (import.meta.vitest) {
   const { describe, it, expect } = import.meta.vitest;
@@ -151,6 +163,148 @@ if (import.meta.vitest) {
             (obj) => {
               const result = Prefecture.safeParse(obj);
               expect(result.success).toBe(false);
+            },
+          ),
+        );
+      });
+    });
+
+    describe('fromResponse', () => {
+      it('should successfully parse valid response with all valid prefectures', () => {
+        fc.assert(
+          fc.property(
+            fc.array(
+              fc.record({
+                prefCode: fc.integer(),
+                prefName: fc.string({ minLength: 1 }),
+              }),
+            ),
+            (prefectures) => {
+              const response: getPrefecturesResponseSuccess = {
+                data: {
+                  message: null,
+                  result: prefectures,
+                },
+                status: 200,
+                headers: new Headers(),
+              };
+
+              const result = fromResponse(response);
+              expect(R.isSuccess(result)).toBe(true);
+              if (R.isSuccess(result)) {
+                expect(result.value.length).toBe(prefectures.length);
+              }
+            },
+          ),
+        );
+      });
+
+      it('should fail when result contains invalid prefecture codes', () => {
+        fc.assert(
+          fc.property(
+            fc
+              .array(
+                fc.record({
+                  prefCode: fc
+                    .double({ noNaN: true })
+                    .filter((n) => !Number.isInteger(n)),
+                  prefName: fc.string({ minLength: 1 }),
+                }),
+                { minLength: 1 },
+              )
+              .filter((arr) => arr.length > 0),
+            (prefectures) => {
+              const response: getPrefecturesResponseSuccess = {
+                data: {
+                  message: null,
+                  result: prefectures,
+                },
+                status: 200,
+                headers: new Headers(),
+              };
+
+              const result = fromResponse(response);
+              expect(R.isSuccess(result)).toBe(false);
+            },
+          ),
+        );
+      });
+
+      it('should fail when result contains empty prefecture names', () => {
+        fc.assert(
+          fc.property(
+            fc
+              .array(
+                fc.record({
+                  prefCode: fc.integer(),
+                  prefName: fc.constant(''),
+                }),
+                { minLength: 1 },
+              )
+              .filter((arr) => arr.length > 0),
+            (prefectures) => {
+              const response: getPrefecturesResponseSuccess = {
+                data: {
+                  message: null,
+                  result: prefectures,
+                },
+                status: 200,
+                headers: new Headers(),
+              };
+
+              const result = fromResponse(response);
+              expect(R.isSuccess(result)).toBe(false);
+            },
+          ),
+        );
+      });
+
+      it('should succeed with empty result array', () => {
+        const response: getPrefecturesResponseSuccess = {
+          data: {
+            message: null,
+            result: [],
+          },
+          status: 200,
+          headers: new Headers(),
+        };
+
+        const result = fromResponse(response);
+        expect(R.isSuccess(result)).toBe(true);
+        if (R.isSuccess(result)) {
+          expect(result.value).toEqual([]);
+        }
+      });
+
+      it('should preserve prefecture data in successful parse', () => {
+        fc.assert(
+          fc.property(
+            fc
+              .array(
+                fc.record({
+                  prefCode: fc.integer(),
+                  prefName: fc.string({ minLength: 1 }),
+                }),
+                { minLength: 1 },
+              )
+              .filter((arr) => arr.length > 0),
+            (prefectures) => {
+              const response: getPrefecturesResponseSuccess = {
+                data: {
+                  message: null,
+                  result: prefectures,
+                },
+                status: 200,
+                headers: new Headers(),
+              };
+
+              const result = fromResponse(response);
+              if (R.isSuccess(result)) {
+                result.value.forEach((parsed, i) => {
+                  expect(parsed.prefectureCode).toBe(prefectures[i]?.prefCode);
+                  expect(parsed.prefectureName).toBe(prefectures[i]?.prefName);
+                });
+              }
             },
           ),
         );
