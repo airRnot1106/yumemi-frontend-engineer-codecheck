@@ -37,3 +37,17 @@ export const getPopulationComposition = async (
     ...res,
   });
 };
+
+export const getPopulationCompositions = async (
+  prefectures: Prefecture[],
+): R.ResultAsync<
+  (getPopulationCompositionPerYearResponseSuccess & {
+    prefecture: Prefecture;
+  })[],
+  getPopulationCompositionPerYearResponseError[]
+> =>
+  R.collect(
+    await Promise.all(
+      prefectures.map((prefecture) => getPopulationComposition(prefecture)),
+    ),
+  );
