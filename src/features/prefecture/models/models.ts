@@ -35,6 +35,8 @@ export const fromResponse = (response: getPrefecturesResponseSuccess) =>
       .map(R.parse(Prefecture)),
   );
 
+export const PREFECTURE_KEY = 'prefecture' as const;
+
 if (import.meta.vitest) {
   const { describe, it, expect } = import.meta.vitest;
   const fc = await import('fast-check');
