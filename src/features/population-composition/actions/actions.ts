@@ -18,6 +18,17 @@ export const getPopulationCompositions = async (
     R.do(),
     R.andThen(getPrefectures),
     R.andThen(toPrefecturesfromResponse),
+    R.mapError((errors) => {
+      if (errors instanceof Error) {
+        return new Error('Failed to fetch prefectures', {
+          cause: errors,
+        });
+      }
+      if (Array.isArray(errors)) {
+        return new Error(`Failed to fetch prefectures: ${errors.join(', ')}`);
+      }
+      return new Error('Failed to fetch prefectures');
+    }),
   );
 
   if (R.isFailure(prefectures)) {
@@ -44,7 +55,22 @@ export const getPopulationCompositions = async (
     R.andThen((responses) =>
       R.collect(responses.map(toPopulationCompositionfromResponse)),
     ),
+    R.mapError((errors) => {
+      console.dir(errors, { depth: null });
+      if (errors instanceof Error) {
+        return new Error('Failed to fetch population compositions', {
+          cause: errors,
+        });
+      }
+      return new Error(
+        `Failed to fetch population compositions: ${errors.join(', ')}`,
+      );
+    }),
   );
+
+  if (R.isFailure(result)) {
+    return R.fail(result.error);
+  }
 
   return result;
 };

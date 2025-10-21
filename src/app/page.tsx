@@ -1,45 +1,24 @@
+import { R } from '@praha/byethrow';
 import Image from 'next/image';
+import { PopulationCompositionForm } from '../features/population-composition/components/population-composition-form';
+import { getPrefectures } from '../features/prefecture/fetchers';
+import { fromResponse } from '../features/prefecture/models';
 
-export default function Home() {
+export default async function Home() {
+  const prefectures = await R.pipe(
+    R.do(),
+    R.andThen(getPrefectures),
+    R.andThen(fromResponse),
+  );
+
+  if (R.isFailure(prefectures)) {
+    return <div>Failed to load prefectures</div>;
+  }
+
   return (
     <div>
       <main>
-        <Image
-          alt="Next.js logo"
-          height={38}
-          priority
-          src="/next.svg"
-          width={180}
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div>
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <Image
-              alt="Vercel logomark"
-              height={20}
-              src="/vercel.svg"
-              width={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Read our docs
-          </a>
-        </div>
+        <PopulationCompositionForm prefectures={prefectures.value} />
       </main>
       <footer>
         <a
