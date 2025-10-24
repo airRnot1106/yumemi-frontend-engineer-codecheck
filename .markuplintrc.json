@@ -5,5 +5,14 @@
   "parser": {
     "\\.[jt]sx?$": "@markuplint/jsx-parser"
   },
-  "extends": ["markuplint:recommended"]
+  "extends": ["markuplint:recommended"],
+  "nodeRules": [
+    {
+      "selector": "head",
+      "rules": {
+        "permitted-contents": false,
+        "required-element": false
+      }
+    }
+  ]
 }

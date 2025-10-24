@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { SiteTheme } from '../features/site-theme/models';
+
 import './globals.css';
 
 const geistSans = Geist({
@@ -23,7 +25,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html
+      data-theme={SiteTheme.schema.enum.system}
+      lang="en"
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: due to necessary inline script for theme setting
+          dangerouslySetInnerHTML={{
+            __html:
+              '(()=>{const e=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light",t=localStorage.getItem("site-theme"),o="system"===t||null===t?e:t;window.document.documentElement.dataset.theme=o,window.document.documentElement.style.setProperty("--color-mix-ratio","light"===o?"7%":"12%")})();',
+          }}
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
       </body>
