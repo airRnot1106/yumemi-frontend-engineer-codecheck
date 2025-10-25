@@ -5,7 +5,7 @@ import type { SystemStyleObject } from '../../../../../../styled-system/types';
 import { Size } from '../../../../../features/size/models';
 
 export type NormalButtonProps = ButtonProps & {
-  className?: string;
+  className?: string | undefined;
   size?: Size;
 };
 

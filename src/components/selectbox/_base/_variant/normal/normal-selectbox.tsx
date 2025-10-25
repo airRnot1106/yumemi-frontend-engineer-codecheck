@@ -4,7 +4,7 @@ import type { CSSProperties, FC } from 'react';
 import { cx, sva } from '../../../../../../styled-system/css';
 
 export type NormalSelectboxProps = SelectProps & {
-  className?: string;
+  className?: string | undefined;
   width?: string;
 };
 
