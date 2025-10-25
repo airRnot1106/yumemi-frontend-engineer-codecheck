@@ -2,33 +2,23 @@ import { R } from '@praha/byethrow';
 import { ErrorFactory } from '@praha/error-factory';
 import z from 'zod';
 import type { getPopulationCompositionPerYearResponseSuccess } from '../../../libs/generated/clients/population';
-import { shouldNeverHappen } from '../../../utils/panic-helper';
 import { Prefecture } from '../../prefecture/models';
 import { PopulationCompositionBoundaryYear } from './population-composition-boundary-year';
+import { PopulationCompositionData } from './population-composition-data';
 import { PopulationCompositionType } from './population-composition-type';
 
 declare const PopulationCompositionBrand: unique symbol;
 
-const dataSchema = z.record(
-  PopulationCompositionType.schema,
-  z
-    .object({
-      year: z.number().int(),
-      value: z.number(),
-    })
-    .array(),
-);
-
 const PopulationCompositionWithoutBrandSchema = z.object({
   prefecture: Prefecture.withoutBrandSchema,
   boundaryYear: PopulationCompositionBoundaryYear.withoutBrandSchema,
-  data: dataSchema,
+  data: PopulationCompositionData.withoutBrandSchema,
 });
 const PopulationCompositionSchema = z
   .object({
     prefecture: Prefecture.schema,
     boundaryYear: PopulationCompositionBoundaryYear.schema,
-    data: dataSchema,
+    data: PopulationCompositionData.schema,
   })
   .brand<typeof PopulationCompositionBrand>();
 
@@ -55,7 +45,9 @@ const create = (
         populationComposition.boundaryYear,
       ),
     ),
-    R.bind('data', () => R.succeed(populationComposition.data)),
+    R.bind('data', () =>
+      PopulationCompositionData.create(populationComposition.data),
+    ),
     R.andThen(R.parse(PopulationCompositionSchema)),
     R.mapError((error) => {
       if (error instanceof Error) {
@@ -78,40 +70,7 @@ const fromResponses = (
       }))
       .map((response) => ({
         ...response,
-        data: {
-          [PopulationCompositionType.schema.enum.totalPopulation]:
-            response.data.find(
-              ({ label }) =>
-                label ===
-                PopulationCompositionType.label[
-                  PopulationCompositionType.schema.enum.totalPopulation
-                ],
-            )?.data ?? shouldNeverHappen(),
-          [PopulationCompositionType.schema.enum.youthPopulation]:
-            response.data.find(
-              ({ label }) =>
-                label ===
-                PopulationCompositionType.label[
-                  PopulationCompositionType.schema.enum.youthPopulation
-                ],
-            )?.data ?? shouldNeverHappen(),
-          [PopulationCompositionType.schema.enum.workingAgePopulation]:
-            response.data.find(
-              ({ label }) =>
-                label ===
-                PopulationCompositionType.label[
-                  PopulationCompositionType.schema.enum.workingAgePopulation
-                ],
-            )?.data ?? shouldNeverHappen(),
-          [PopulationCompositionType.schema.enum.elderlyPopulation]:
-            response.data.find(
-              ({ label }) =>
-                label ===
-                PopulationCompositionType.label[
-                  PopulationCompositionType.schema.enum.elderlyPopulation
-                ],
-            )?.data ?? shouldNeverHappen(),
-        },
+        data: PopulationCompositionData.transformSchema(response.data),
       }))
       .map(create),
   );
@@ -141,9 +100,6 @@ if (import.meta.vitest) {
           },
         });
 
-        if (R.isFailure(result)) {
-          console.log('Minimal test error:', result.error);
-        }
         expect(R.isSuccess(result)).toBe(true);
       });
 
@@ -326,7 +282,7 @@ if (import.meta.vitest) {
       });
     });
 
-    describe('fromResponse', () => {
+    describe('fromResponses', () => {
       it('should succeed for valid response data', () => {
         const prefecture = Prefecture.create({ code: 1, name: '北海道' });
         if (R.isFailure(prefecture)) {
@@ -370,7 +326,7 @@ if (import.meta.vitest) {
           },
         ];
 
-        const result = PopulationComposition.fromResponse(responses);
+        const result = PopulationComposition.fromResponses(responses);
         expect(R.isSuccess(result)).toBe(true);
         if (R.isSuccess(result)) {
           expect(result.value).toHaveLength(1);
@@ -383,7 +339,7 @@ if (import.meta.vitest) {
       });
 
       it('should succeed for empty response array', () => {
-        const result = PopulationComposition.fromResponse([]);
+        const result = PopulationComposition.fromResponses([]);
         expect(R.isSuccess(result)).toBe(true);
         if (R.isSuccess(result)) {
           expect(result.value).toEqual([]);
@@ -461,7 +417,7 @@ if (import.meta.vitest) {
           },
         ];
 
-        const result = PopulationComposition.fromResponse(responses);
+        const result = PopulationComposition.fromResponses(responses);
         expect(R.isSuccess(result)).toBe(true);
         if (R.isSuccess(result)) {
           expect(result.value).toHaveLength(2);
@@ -510,7 +466,7 @@ if (import.meta.vitest) {
           },
         ];
 
-        const result = PopulationComposition.fromResponse(responses);
+        const result = PopulationComposition.fromResponses(responses);
         expect(R.isFailure(result)).toBe(true);
         if (R.isFailure(result)) {
           expect(Array.isArray(result.error)).toBe(true);
@@ -558,7 +514,7 @@ if (import.meta.vitest) {
           },
         ];
 
-        const result = PopulationComposition.fromResponse(responses);
+        const result = PopulationComposition.fromResponses(responses);
         expect(R.isFailure(result)).toBe(true);
         if (R.isFailure(result)) {
           expect(Array.isArray(result.error)).toBe(true);
