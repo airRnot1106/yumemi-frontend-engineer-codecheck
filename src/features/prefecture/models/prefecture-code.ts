@@ -26,10 +26,14 @@ const create = (prefectureCode: PrefectureCodeWithoutBrand) =>
     R.mapError(() => new InvalidPrefectureCodeError({ prefectureCode })),
   );
 
+const fromFormData = (values: FormDataEntryValue[]) =>
+  R.collect(values.map((value) => create(Number(value))));
+
 export const PrefectureCode = {
   schema: PrefectureCodeSchema,
   withoutBrandSchema: PrefectureCodeWithoutBrandSchema,
   create,
+  fromFormData,
 };
 
 if (import.meta.vitest) {
