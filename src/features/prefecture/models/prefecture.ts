@@ -54,7 +54,10 @@ const fromResponse = (
       .map(create),
   );
 
+const PrefectureKey = 'prefectures' as const;
+
 export const Prefecture = {
+  key: PrefectureKey,
   schema: PrefectureSchema,
   withoutBrandSchema: PrefectureWithoutBrandSchema,
   create,
