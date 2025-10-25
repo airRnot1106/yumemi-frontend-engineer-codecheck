@@ -3,6 +3,12 @@
     "storybook-mcp": {
       "type": "http",
       "url": "http://localhost:6006/mcp"
+    },
+    "byethrow": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@praha/byethrow-mcp"],
+      "env": {}
     }
   }
 }
