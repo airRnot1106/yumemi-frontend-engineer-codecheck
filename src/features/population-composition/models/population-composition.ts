@@ -1,6 +1,8 @@
 import { R } from '@praha/byethrow';
 import { ErrorFactory } from '@praha/error-factory';
 import z from 'zod';
+import type { getPopulationCompositionPerYearResponseSuccess } from '../../../libs/generated/clients/population';
+import { shouldNeverHappen } from '../../../utils/panic-helper';
 import { Prefecture } from '../../prefecture/models';
 import { PopulationCompositionBoundaryYear } from './population-composition-boundary-year';
 import { PopulationCompositionType } from './population-composition-type';
@@ -63,10 +65,62 @@ const create = (
     }),
   );
 
+const fromResponses = (
+  responses: (getPopulationCompositionPerYearResponseSuccess & {
+    prefecture: Prefecture;
+  })[],
+): R.Result<PopulationComposition[], InvalidPopulationCompositionError[]> =>
+  R.collect(
+    responses
+      .map((response) => ({
+        ...response.data.result,
+        prefecture: response.prefecture,
+      }))
+      .map((response) => ({
+        ...response,
+        data: {
+          [PopulationCompositionType.schema.enum.totalPopulation]:
+            response.data.find(
+              ({ label }) =>
+                label ===
+                PopulationCompositionType.label[
+                  PopulationCompositionType.schema.enum.totalPopulation
+                ],
+            )?.data ?? shouldNeverHappen(),
+          [PopulationCompositionType.schema.enum.youthPopulation]:
+            response.data.find(
+              ({ label }) =>
+                label ===
+                PopulationCompositionType.label[
+                  PopulationCompositionType.schema.enum.youthPopulation
+                ],
+            )?.data ?? shouldNeverHappen(),
+          [PopulationCompositionType.schema.enum.workingAgePopulation]:
+            response.data.find(
+              ({ label }) =>
+                label ===
+                PopulationCompositionType.label[
+                  PopulationCompositionType.schema.enum.workingAgePopulation
+                ],
+            )?.data ?? shouldNeverHappen(),
+          [PopulationCompositionType.schema.enum.elderlyPopulation]:
+            response.data.find(
+              ({ label }) =>
+                label ===
+                PopulationCompositionType.label[
+                  PopulationCompositionType.schema.enum.elderlyPopulation
+                ],
+            )?.data ?? shouldNeverHappen(),
+        },
+      }))
+      .map(create),
+  );
+
 export const PopulationComposition = {
   schema: PopulationCompositionSchema,
   withoutBrandSchema: PopulationCompositionSchemaWithoutBrand,
   create,
+  fromResponses,
 };
 
 if (import.meta.vitest) {
@@ -102,7 +156,7 @@ if (import.meta.vitest) {
             fc.array(
               fc.record({
                 year: fc.integer(),
-                value: fc.float(),
+                value: fc.float().filter((n) => Number.isFinite(n)),
               }),
             ),
             (code, name, boundaryYear, dataArray) => {
@@ -268,6 +322,247 @@ if (import.meta.vitest) {
           expect(composition.prefecture.name).toBe('東京都');
           expect(composition.boundaryYear).toBe(2020);
           expect(composition.data.totalPopulation).toHaveLength(2);
+        }
+      });
+    });
+
+    describe('fromResponse', () => {
+      it('should succeed for valid response data', () => {
+        const prefecture = Prefecture.create({ code: 1, name: '北海道' });
+        if (R.isFailure(prefecture)) {
+          throw new Error('Prefecture creation failed');
+        }
+
+        const responses: (getPopulationCompositionPerYearResponseSuccess & {
+          prefecture: Prefecture;
+        })[] = [
+          {
+            data: {
+              message: null,
+              result: {
+                boundaryYear: 2020,
+                data: [
+                  {
+                    label: PopulationCompositionType.label.totalPopulation,
+                    data: [
+                      { year: 2020, value: 5000000 },
+                      { year: 2021, value: 5100000 },
+                    ],
+                  },
+                  {
+                    label: PopulationCompositionType.label.youthPopulation,
+                    data: [{ year: 2020, value: 500000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.workingAgePopulation,
+                    data: [{ year: 2020, value: 3000000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.elderlyPopulation,
+                    data: [{ year: 2020, value: 1500000 }],
+                  },
+                ],
+              },
+            },
+            status: 200,
+            headers: new Headers(),
+            prefecture: prefecture.value,
+          },
+        ];
+
+        const result = PopulationComposition.fromResponse(responses);
+        expect(R.isSuccess(result)).toBe(true);
+        if (R.isSuccess(result)) {
+          expect(result.value).toHaveLength(1);
+          expect(result.value[0]?.prefecture.code).toBe(1);
+          expect(result.value[0]?.prefecture.name).toBe('北海道');
+          expect(result.value[0]?.boundaryYear).toBe(2020);
+          expect(result.value[0]?.data.totalPopulation).toHaveLength(2);
+          expect(result.value[0]?.data.youthPopulation).toHaveLength(1);
+        }
+      });
+
+      it('should succeed for empty response array', () => {
+        const result = PopulationComposition.fromResponse([]);
+        expect(R.isSuccess(result)).toBe(true);
+        if (R.isSuccess(result)) {
+          expect(result.value).toEqual([]);
+        }
+      });
+
+      it('should succeed for multiple responses', () => {
+        const prefecture1 = Prefecture.create({ code: 1, name: '北海道' });
+        const prefecture2 = Prefecture.create({ code: 13, name: '東京都' });
+
+        if (R.isFailure(prefecture1) || R.isFailure(prefecture2)) {
+          throw new Error('Prefecture creation failed');
+        }
+
+        const responses: (getPopulationCompositionPerYearResponseSuccess & {
+          prefecture: Prefecture;
+        })[] = [
+          {
+            data: {
+              message: null,
+              result: {
+                boundaryYear: 2020,
+                data: [
+                  {
+                    label: PopulationCompositionType.label.totalPopulation,
+                    data: [{ year: 2020, value: 5000000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.youthPopulation,
+                    data: [{ year: 2020, value: 500000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.workingAgePopulation,
+                    data: [{ year: 2020, value: 3000000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.elderlyPopulation,
+                    data: [{ year: 2020, value: 1500000 }],
+                  },
+                ],
+              },
+            },
+            status: 200,
+            headers: new Headers(),
+            prefecture: prefecture1.value,
+          },
+          {
+            data: {
+              message: null,
+              result: {
+                boundaryYear: 2021,
+                data: [
+                  {
+                    label: PopulationCompositionType.label.totalPopulation,
+                    data: [{ year: 2021, value: 14000000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.youthPopulation,
+                    data: [{ year: 2021, value: 1400000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.workingAgePopulation,
+                    data: [{ year: 2021, value: 8400000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.elderlyPopulation,
+                    data: [{ year: 2021, value: 4200000 }],
+                  },
+                ],
+              },
+            },
+            status: 200,
+            headers: new Headers(),
+            prefecture: prefecture2.value,
+          },
+        ];
+
+        const result = PopulationComposition.fromResponse(responses);
+        expect(R.isSuccess(result)).toBe(true);
+        if (R.isSuccess(result)) {
+          expect(result.value).toHaveLength(2);
+          expect(result.value[0]?.prefecture.name).toBe('北海道');
+          expect(result.value[1]?.prefecture.name).toBe('東京都');
+        }
+      });
+
+      it('should fail when boundaryYear is not an integer', () => {
+        const prefecture = Prefecture.create({ code: 1, name: '北海道' });
+        if (R.isFailure(prefecture)) {
+          throw new Error('Prefecture creation failed');
+        }
+
+        const responses: (getPopulationCompositionPerYearResponseSuccess & {
+          prefecture: Prefecture;
+        })[] = [
+          {
+            data: {
+              message: null,
+              result: {
+                boundaryYear: 2020.5,
+                data: [
+                  {
+                    label: PopulationCompositionType.label.totalPopulation,
+                    data: [{ year: 2020, value: 5000000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.youthPopulation,
+                    data: [{ year: 2020, value: 500000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.workingAgePopulation,
+                    data: [{ year: 2020, value: 3000000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.elderlyPopulation,
+                    data: [{ year: 2020, value: 1500000 }],
+                  },
+                ],
+              },
+            },
+            status: 200,
+            headers: new Headers(),
+            prefecture: prefecture.value,
+          },
+        ];
+
+        const result = PopulationComposition.fromResponse(responses);
+        expect(R.isFailure(result)).toBe(true);
+        if (R.isFailure(result)) {
+          expect(Array.isArray(result.error)).toBe(true);
+          expect(result.error.length).toBeGreaterThan(0);
+        }
+      });
+
+      it('should fail when data year is not an integer', () => {
+        const prefecture = Prefecture.create({ code: 1, name: '北海道' });
+        if (R.isFailure(prefecture)) {
+          throw new Error('Prefecture creation failed');
+        }
+
+        const responses: (getPopulationCompositionPerYearResponseSuccess & {
+          prefecture: Prefecture;
+        })[] = [
+          {
+            data: {
+              message: null,
+              result: {
+                boundaryYear: 2020,
+                data: [
+                  {
+                    label: PopulationCompositionType.label.totalPopulation,
+                    data: [{ year: 2020.5, value: 5000000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.youthPopulation,
+                    data: [{ year: 2020, value: 500000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.workingAgePopulation,
+                    data: [{ year: 2020, value: 3000000 }],
+                  },
+                  {
+                    label: PopulationCompositionType.label.elderlyPopulation,
+                    data: [{ year: 2020, value: 1500000 }],
+                  },
+                ],
+              },
+            },
+            status: 200,
+            headers: new Headers(),
+            prefecture: prefecture.value,
+          },
+        ];
+
+        const result = PopulationComposition.fromResponse(responses);
+        expect(R.isFailure(result)).toBe(true);
+        if (R.isFailure(result)) {
+          expect(Array.isArray(result.error)).toBe(true);
+          expect(result.error.length).toBeGreaterThan(0);
         }
       });
     });
