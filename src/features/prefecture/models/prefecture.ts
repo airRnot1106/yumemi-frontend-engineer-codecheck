@@ -1,6 +1,7 @@
 import { R } from '@praha/byethrow';
 import { ErrorFactory } from '@praha/error-factory';
 import z from 'zod';
+import type { getPrefecturesResponseSuccess } from '../../../libs/generated/clients/prefectures';
 import { PrefectureCode } from './prefecture-code';
 import { PrefectureName } from './prefecture-name';
 
@@ -41,10 +42,23 @@ const create = (
     }),
   );
 
+const fromResponse = (
+  response: getPrefecturesResponseSuccess,
+): R.Result<Prefecture[], InvalidPrefectureError[]> =>
+  R.collect(
+    response.data.result
+      .map(({ prefCode, prefName }) => ({
+        code: prefCode,
+        name: prefName,
+      }))
+      .map(create),
+  );
+
 export const Prefecture = {
   schema: PrefectureSchema,
   withoutBrandSchema: PrefectureSchemaWithoutBrand,
   create,
+  fromResponse,
 };
 
 if (import.meta.vitest) {
@@ -114,6 +128,138 @@ if (import.meta.vitest) {
           const prefecture: Prefecture = result.value;
           expect(prefecture.code).toBe(13);
           expect(prefecture.name).toBe('東京都');
+        }
+      });
+    });
+
+    describe('fromResponse', () => {
+      it('should succeed for valid response with prefecture data', () => {
+        fc.assert(
+          fc.property(
+            fc.array(
+              fc.record({
+                prefCode: fc.integer(),
+                prefName: fc
+                  .string({ minLength: 1 })
+                  .filter((s) => s.trim().length > 0),
+              }),
+            ),
+            (resultArray) => {
+              const response: getPrefecturesResponseSuccess = {
+                data: {
+                  message: null,
+                  result: resultArray,
+                },
+                status: 200,
+                headers: new Headers(),
+              };
+
+              const result = Prefecture.fromResponse(response);
+              expect(R.isSuccess(result)).toBe(true);
+              if (R.isSuccess(result)) {
+                expect(result.value).toHaveLength(resultArray.length);
+                result.value.forEach((prefecture, index) => {
+                  expect(prefecture.code).toBe(resultArray[index]?.prefCode);
+                  expect(prefecture.name).toBe(resultArray[index]?.prefName);
+                });
+              }
+            },
+          ),
+        );
+      });
+
+      it('should succeed for empty result array', () => {
+        const response: getPrefecturesResponseSuccess = {
+          data: {
+            message: null,
+            result: [],
+          },
+          status: 200,
+          headers: new Headers(),
+        };
+
+        const result = Prefecture.fromResponse(response);
+        expect(R.isSuccess(result)).toBe(true);
+        if (R.isSuccess(result)) {
+          expect(result.value).toEqual([]);
+        }
+      });
+
+      it('should fail when any prefecture has invalid code', () => {
+        fc.assert(
+          fc.property(
+            fc
+              .float()
+              .filter((n) => !Number.isInteger(n) && Number.isFinite(n)),
+            fc.string({ minLength: 1 }).filter((s) => s.trim().length > 0),
+            (invalidCode, validName) => {
+              const response: getPrefecturesResponseSuccess = {
+                data: {
+                  message: null,
+                  result: [
+                    { prefCode: 1, prefName: '北海道' },
+                    { prefCode: invalidCode, prefName: validName },
+                  ],
+                },
+                status: 200,
+                headers: new Headers(),
+              };
+
+              const result = Prefecture.fromResponse(response);
+              expect(R.isFailure(result)).toBe(true);
+              if (R.isFailure(result)) {
+                expect(Array.isArray(result.error)).toBe(true);
+                expect(result.error.length).toBeGreaterThan(0);
+              }
+            },
+          ),
+        );
+      });
+
+      it('should fail when any prefecture has empty name', () => {
+        fc.assert(
+          fc.property(fc.integer(), (validCode) => {
+            const response: getPrefecturesResponseSuccess = {
+              data: {
+                message: null,
+                result: [
+                  { prefCode: 1, prefName: '北海道' },
+                  { prefCode: validCode, prefName: '' },
+                ],
+              },
+              status: 200,
+              headers: new Headers(),
+            };
+
+            const result = Prefecture.fromResponse(response);
+            expect(R.isFailure(result)).toBe(true);
+            if (R.isFailure(result)) {
+              expect(Array.isArray(result.error)).toBe(true);
+              expect(result.error.length).toBeGreaterThan(0);
+            }
+          }),
+        );
+      });
+
+      it('should collect all errors when multiple items are invalid', () => {
+        const response: getPrefecturesResponseSuccess = {
+          data: {
+            message: null,
+            result: [
+              { prefCode: 1.5, prefName: '北海道' },
+              { prefCode: 2, prefName: '' },
+              { prefCode: NaN, prefName: '東京都' },
+            ],
+          },
+          status: 200,
+          headers: new Headers(),
+        };
+
+        const result = Prefecture.fromResponse(response);
+        expect(R.isFailure(result)).toBe(true);
+        if (R.isFailure(result)) {
+          expect(Array.isArray(result.error)).toBe(true);
+          expect(result.error.length).toBe(3);
         }
       });
     });
