@@ -7,7 +7,7 @@ import { PrefectureName } from './prefecture-name';
 
 declare const PrefectureBrand: unique symbol;
 
-const PrefectureSchemaWithoutBrand = z.object({
+const PrefectureWithoutBrandSchema = z.object({
   code: PrefectureCode.withoutBrandSchema,
   name: PrefectureName.withoutBrandSchema,
 });
@@ -18,7 +18,7 @@ const PrefectureSchema = z
   })
   .brand<typeof PrefectureBrand>();
 
-type PrefectureWithoutBrand = z.infer<typeof PrefectureSchemaWithoutBrand>;
+type PrefectureWithoutBrand = z.infer<typeof PrefectureWithoutBrandSchema>;
 export type Prefecture = z.infer<typeof PrefectureSchema>;
 
 export class InvalidPrefectureError extends ErrorFactory({
@@ -56,7 +56,7 @@ const fromResponse = (
 
 export const Prefecture = {
   schema: PrefectureSchema,
-  withoutBrandSchema: PrefectureSchemaWithoutBrand,
+  withoutBrandSchema: PrefectureWithoutBrandSchema,
   create,
   fromResponse,
 };

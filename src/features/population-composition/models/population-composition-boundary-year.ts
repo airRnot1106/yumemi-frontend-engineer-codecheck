@@ -4,14 +4,14 @@ import z from 'zod';
 
 declare const PopulationCompositionBoundaryYearBrand: unique symbol;
 
-const PopulationCompositionBoundaryYearSchemaWithoutBrand = z.number().int();
+const PopulationCompositionBoundaryYearWithoutBrandSchema = z.number().int();
 const PopulationCompositionBoundaryYearSchema =
-  PopulationCompositionBoundaryYearSchemaWithoutBrand.brand<
+  PopulationCompositionBoundaryYearWithoutBrandSchema.brand<
     typeof PopulationCompositionBoundaryYearBrand
   >();
 
 type PopulationCompositionBoundaryYearWithoutBrand = z.infer<
-  typeof PopulationCompositionBoundaryYearSchemaWithoutBrand
+  typeof PopulationCompositionBoundaryYearWithoutBrandSchema
 >;
 export type PopulationCompositionBoundaryYear = z.infer<
   typeof PopulationCompositionBoundaryYearSchema
@@ -39,7 +39,7 @@ const create = (boundaryYear: PopulationCompositionBoundaryYearWithoutBrand) =>
 
 export const PopulationCompositionBoundaryYear = {
   schema: PopulationCompositionBoundaryYearSchema,
-  withoutBrandSchema: PopulationCompositionBoundaryYearSchemaWithoutBrand,
+  withoutBrandSchema: PopulationCompositionBoundaryYearWithoutBrandSchema,
   create,
 };
 

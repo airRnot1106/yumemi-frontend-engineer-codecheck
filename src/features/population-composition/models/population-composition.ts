@@ -19,7 +19,7 @@ const dataSchema = z.record(
     .array(),
 );
 
-const PopulationCompositionSchemaWithoutBrand = z.object({
+const PopulationCompositionWithoutBrandSchema = z.object({
   prefecture: Prefecture.withoutBrandSchema,
   boundaryYear: PopulationCompositionBoundaryYear.withoutBrandSchema,
   data: dataSchema,
@@ -33,7 +33,7 @@ const PopulationCompositionSchema = z
   .brand<typeof PopulationCompositionBrand>();
 
 type PopulationCompositionWithoutBrand = z.infer<
-  typeof PopulationCompositionSchemaWithoutBrand
+  typeof PopulationCompositionWithoutBrandSchema
 >;
 export type PopulationComposition = z.infer<typeof PopulationCompositionSchema>;
 
@@ -118,7 +118,7 @@ const fromResponses = (
 
 export const PopulationComposition = {
   schema: PopulationCompositionSchema,
-  withoutBrandSchema: PopulationCompositionSchemaWithoutBrand,
+  withoutBrandSchema: PopulationCompositionWithoutBrandSchema,
   create,
   fromResponses,
 };

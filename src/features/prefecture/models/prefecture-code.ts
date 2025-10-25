@@ -4,12 +4,12 @@ import z from 'zod';
 
 declare const PrefectureCodeBrand: unique symbol;
 
-const PrefectureCodeSchemaWithoutBrand = z.number().int();
+const PrefectureCodeWithoutBrandSchema = z.number().int();
 const PrefectureCodeSchema =
-  PrefectureCodeSchemaWithoutBrand.brand<typeof PrefectureCodeBrand>();
+  PrefectureCodeWithoutBrandSchema.brand<typeof PrefectureCodeBrand>();
 
 type PrefectureCodeWithoutBrand = z.infer<
-  typeof PrefectureCodeSchemaWithoutBrand
+  typeof PrefectureCodeWithoutBrandSchema
 >;
 export type PrefectureCode = z.infer<typeof PrefectureCodeSchema>;
 
@@ -28,7 +28,7 @@ const create = (prefectureCode: PrefectureCodeWithoutBrand) =>
 
 export const PrefectureCode = {
   schema: PrefectureCodeSchema,
-  withoutBrandSchema: PrefectureCodeSchemaWithoutBrand,
+  withoutBrandSchema: PrefectureCodeWithoutBrandSchema,
   create,
 };
 
