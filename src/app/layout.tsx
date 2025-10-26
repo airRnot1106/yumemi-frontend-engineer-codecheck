@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { css } from '../../styled-system/css';
+import { SiteFooter } from '../features/site/components/site-footer';
+import { SiteHeader } from '../features/site/components/site-header';
 import { SiteTheme } from '../features/site-theme/models';
 
 import './globals.css';
@@ -39,9 +42,18 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} ${style}`}>
+        <SiteHeader />
+        <main>{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );
 }
+
+const style = css({
+  display: 'grid',
+  gridTemplateRows: 'auto 1fr auto',
+  minHeight: '100dvh',
+  backgroundColor: 'base',
+});
