@@ -8,6 +8,7 @@ import {
   startTransition,
 } from 'react';
 import { cx, sva } from '../../../../../styled-system/css';
+import { Button } from '../../../../components/button';
 import { Checkbox } from '../../../../components/checkbox';
 import { Prefecture, type PrefectureCode } from '../../models';
 
@@ -70,7 +71,7 @@ export const PrefectureCheckboxForm: FC<PrefectureCheckboxFormProps> = ({
     ),
   });
 
-  const { form: formStyle, fields } = style();
+  const { form: formStyle, fields, reset } = style();
 
   return (
     <form action={action} className={cx(formStyle, className)}>
@@ -94,14 +95,27 @@ export const PrefectureCheckboxForm: FC<PrefectureCheckboxFormProps> = ({
           ))}
         </div>
       </fieldset>
+      <Button
+        className={reset}
+        onClick={() => {
+          form.reset();
+          form.handleSubmit();
+        }}
+        type="reset"
+        variant="normal"
+      >
+        リセット
+      </Button>
     </form>
   );
 };
 
 const style = sva({
-  slots: ['form', 'legend', 'fields'],
+  slots: ['form', 'fields', 'reset'],
   base: {
     form: {
+      display: 'grid',
+      gridAutoFlow: 'row',
       width: 'full',
     },
     fields: {
@@ -113,6 +127,10 @@ const style = sva({
       paddingInline: '8',
       paddingBlock: '4',
       borderRadius: 'md',
+    },
+    reset: {
+      justifySelf: 'center',
+      width: 'fit-content',
     },
   },
 });
