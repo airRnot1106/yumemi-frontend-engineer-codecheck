@@ -12,7 +12,8 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { type FC, useState } from 'react';
+import { useQueryState } from 'nuqs';
+import type { FC } from 'react';
 import { Line } from 'react-chartjs-2';
 import { cx, sva } from '../../../../../styled-system/css';
 import { Selectbox } from '../../../../components/selectbox';
@@ -37,19 +38,14 @@ ChartJS.register(
 export type PopulationCompositionChartProps = {
   className?: string | undefined;
   populationCompositions: PopulationComposition[];
-  defaultPopulationCompositionType: PopulationCompositionType;
 };
 
 export const PopulationCompositionChart: FC<
   PopulationCompositionChartProps
-> = ({
-  className,
-  populationCompositions,
-  defaultPopulationCompositionType,
-}) => {
-  const [populationCompositionType, setPopulationCompositionType] = useState(
-    defaultPopulationCompositionType,
-  );
+> = ({ className, populationCompositions }) => {
+  const { key, parser } = PopulationCompositionType.searchParams;
+  const [populationCompositionType, setPopulationCompositionType] =
+    useQueryState(key, parser);
 
   const { getStaticColors, generateDynamicColor } =
     usePopulationCompositionChartColor();

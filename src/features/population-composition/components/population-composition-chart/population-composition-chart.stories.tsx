@@ -164,48 +164,36 @@ const osakaData: PopulationComposition = {
 export const SinglePrefecture: Story = {
   args: {
     populationCompositions: [hokkaidoData],
-    defaultPopulationCompositionType:
-      PopulationCompositionType.schema.enum.totalPopulation,
   },
 };
 
 export const MultiplePrefectures: Story = {
   args: {
     populationCompositions: [hokkaidoData, tokyoData, osakaData],
-    defaultPopulationCompositionType:
-      PopulationCompositionType.schema.enum.totalPopulation,
   },
 };
 
 export const YouthPopulation: Story = {
   args: {
     populationCompositions: [hokkaidoData, tokyoData],
-    defaultPopulationCompositionType:
-      PopulationCompositionType.schema.enum.youthPopulation,
   },
 };
 
 export const WorkingAgePopulation: Story = {
   args: {
     populationCompositions: [hokkaidoData, tokyoData],
-    defaultPopulationCompositionType:
-      PopulationCompositionType.schema.enum.workingAgePopulation,
   },
 };
 
 export const ElderlyPopulation: Story = {
   args: {
     populationCompositions: [hokkaidoData, tokyoData],
-    defaultPopulationCompositionType:
-      PopulationCompositionType.schema.enum.elderlyPopulation,
   },
 };
 
 export const WithInteraction: Story = {
   args: {
     populationCompositions: [hokkaidoData, tokyoData],
-    defaultPopulationCompositionType:
-      PopulationCompositionType.schema.enum.totalPopulation,
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

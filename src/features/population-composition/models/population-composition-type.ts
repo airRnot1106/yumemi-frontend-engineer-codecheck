@@ -1,3 +1,4 @@
+import { parseAsStringLiteral } from 'nuqs/server';
 import z from 'zod';
 
 const PopulationCompositionTypeSchema = z.enum([
@@ -18,7 +19,17 @@ const PopulationCompositionTypeLabelMap = {
   elderlyPopulation: '老年人口',
 } as const satisfies Record<PopulationCompositionType, string>;
 
+const searchParamsKey = 'type';
+
+const searchParamsParser = parseAsStringLiteral(
+  Object.values(PopulationCompositionTypeSchema.enum),
+).withDefault(PopulationCompositionTypeSchema.enum.totalPopulation);
+
 export const PopulationCompositionType = {
   schema: PopulationCompositionTypeSchema,
   label: PopulationCompositionTypeLabelMap,
+  searchParams: {
+    key: searchParamsKey,
+    parser: searchParamsParser,
+  },
 };

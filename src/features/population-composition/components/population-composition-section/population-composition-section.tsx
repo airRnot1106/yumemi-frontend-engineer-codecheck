@@ -50,7 +50,6 @@ export const PopulationCompositionSection: FC<
         <div className={chartWrapper}>
           <PopulationCompositionChart
             className={chart}
-            defaultPopulationCompositionType="workingAgePopulation"
             populationCompositions={state.value}
           />
         </div>
