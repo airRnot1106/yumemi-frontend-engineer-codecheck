@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { css } from '../../styled-system/css';
 import { SiteFooter } from '../features/site/components/site-footer';
 import { SiteHeader } from '../features/site/components/site-header';
@@ -43,9 +44,11 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${style}`}>
-        <SiteHeader />
-        <main>{children}</main>
-        <SiteFooter />
+        <NuqsAdapter>
+          <SiteHeader />
+          <main>{children}</main>
+          <SiteFooter />
+        </NuqsAdapter>
       </body>
     </html>
   );
