@@ -32,6 +32,11 @@ export class InvalidPopulationCompositionError extends ErrorFactory({
   message: 'Invalid PopulationComposition',
 }) {}
 
+export class FailedToFetchPopulationCompositionError extends ErrorFactory({
+  name: 'FailedToFetchPopulationCompositionError',
+  message: 'Failed to fetch population composition data',
+}) {}
+
 const create = (
   populationComposition: PopulationCompositionWithoutBrand,
 ): R.Result<PopulationComposition, InvalidPopulationCompositionError> =>
