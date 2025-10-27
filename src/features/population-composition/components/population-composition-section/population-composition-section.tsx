@@ -17,7 +17,7 @@ export type PopulationCompositionSectionProps = ComponentProps<'section'> & {
 export const PopulationCompositionSection: FC<
   PopulationCompositionSectionProps
 > = ({ className, prefectures, ...rest }) => {
-  const [state, action, isPending] = useActionState(
+  const [state, action, _isPending] = useActionState(
     getPopulationCompositions,
     R.succeed([]),
   );
@@ -25,6 +25,9 @@ export const PopulationCompositionSection: FC<
   if (state.type === 'Failure') {
     throw new FailedToFetchPopulationCompositionError();
   }
+
+  // Note: 未選択時から選択したときのみローディングを表示する
+  const isPending = _isPending && state.value.length === 0;
 
   const { section, legend, loading, chartWrapper, chart } = style();
 
@@ -58,6 +61,9 @@ const style = sva({
   slots: ['section', 'legend', 'loading', 'chartWrapper', 'chart'],
   base: {
     section: {
+      display: 'grid',
+      gridAutoFlow: 'row',
+      rowGap: '6',
       backgroundColor: 'surface',
       borderRadius: 'md',
       padding: {
