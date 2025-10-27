@@ -1,6 +1,7 @@
 'use client';
 
 import { mergeForm, useForm, useTransform } from '@tanstack/react-form';
+import { useQueryState } from 'nuqs';
 import {
   type ComponentProps,
   type FC,
@@ -10,7 +11,7 @@ import {
 import { cx, sva } from '../../../../../styled-system/css';
 import { Button } from '../../../../components/button';
 import { Checkbox } from '../../../../components/checkbox';
-import { Prefecture, type PrefectureCode } from '../../models';
+import { Prefecture, PrefectureCode } from '../../models';
 
 export type PrefectureCheckboxFormProps = ComponentProps<'form'> & {
   className?: string;
@@ -32,23 +33,34 @@ export const PrefectureCheckboxForm: FC<PrefectureCheckboxFormProps> = ({
   defaultValues: _defaultValues = [],
   legend,
 }) => {
+  const { key, parser } = PrefectureCode.searchParams;
+  const [prefectureCodes, setPrefectureCodes] = useQueryState(key, parser);
+
   const defaultValues = Object.fromEntries(
     prefectures.map(({ code }) => [
       `${PREFIX}${code}`,
-      _defaultValues.includes(code),
+      prefectureCodes.includes(code),
     ]),
   );
 
   const form = useForm({
     defaultValues,
     onSubmit: ({ value }) => {
+      const prefectureCodes =
+        parser.parse(
+          Object.entries(value)
+            .filter(([, isChecked]) => isChecked)
+            .map(([key]) => key.replace(PREFIX, ''))
+            .join(','),
+        ) ?? [];
+
+      setPrefectureCodes(prefectureCodes);
+
       const formData = new FormData();
-      Object.entries(value).forEach(([key, isChecked]) => {
-        if (isChecked) {
-          const prefectureCode = key.replace(PREFIX, '');
-          formData.append(NAME, prefectureCode);
-        }
-      });
+      for (const prefectureCode of prefectureCodes) {
+        formData.append(NAME, prefectureCode.toString());
+      }
+
       startTransition(() => {
         action(formData);
       });
@@ -99,7 +111,10 @@ export const PrefectureCheckboxForm: FC<PrefectureCheckboxFormProps> = ({
         className={reset}
         onClick={() => {
           form.reset();
-          form.handleSubmit();
+          setPrefectureCodes([]);
+          startTransition(() => {
+            action(new FormData());
+          });
         }}
         type="reset"
         variant="normal"

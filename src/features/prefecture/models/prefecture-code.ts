@@ -1,5 +1,6 @@
 import { R } from '@praha/byethrow';
 import { ErrorFactory } from '@praha/error-factory';
+import { createParser } from 'nuqs/server';
 import z from 'zod';
 
 declare const PrefectureCodeBrand: unique symbol;
@@ -29,11 +30,31 @@ const create = (prefectureCode: PrefectureCodeWithoutBrand) =>
 const fromFormData = (values: FormDataEntryValue[]) =>
   R.collect(values.map((value) => create(Number(value))));
 
+const searchParamsKey = 'prefectures';
+
+const searchParamsParser = createParser({
+  parse(queryValue) {
+    const values = queryValue.split(',');
+    const codes = values
+      .map((value) => create(Number(value)))
+      .filter(R.isSuccess)
+      .map((result) => result.value);
+    return codes;
+  },
+  serialize(codes) {
+    return codes.join(',');
+  },
+}).withDefault([]);
+
 export const PrefectureCode = {
   schema: PrefectureCodeSchema,
   withoutBrandSchema: PrefectureCodeWithoutBrandSchema,
   create,
   fromFormData,
+  searchParams: {
+    key: searchParamsKey,
+    parser: searchParamsParser,
+  },
 };
 
 if (import.meta.vitest) {
