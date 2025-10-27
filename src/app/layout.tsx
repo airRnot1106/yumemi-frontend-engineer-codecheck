@@ -59,4 +59,5 @@ const style = css({
   gridTemplateRows: 'auto 1fr auto',
   minHeight: '100dvh',
   backgroundColor: 'base',
+  color: 'text',
 });
