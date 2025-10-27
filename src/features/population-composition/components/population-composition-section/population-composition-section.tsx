@@ -6,6 +6,7 @@ import { cx, sva } from '../../../../../styled-system/css';
 import { LoadingIndicator } from '../../../../components/indicator';
 import { PrefectureCheckboxForm } from '../../../prefecture/components/prefecture-checkbox-form';
 import type { Prefecture } from '../../../prefecture/models';
+import { useSiteTheme } from '../../../site-theme/hooks';
 import { getPopulationCompositions } from '../../actions';
 import { FailedToFetchPopulationCompositionError } from '../../models';
 import { PopulationCompositionChart } from '../population-composition-chart';
@@ -31,6 +32,8 @@ export const PopulationCompositionSection: FC<
 
   const isUnselected = !_isPending && state.value.length === 0;
 
+  const { theme } = useSiteTheme();
+
   const { section, legend, loading, chartWrapper, chart, unselected } = style();
 
   return (
@@ -50,6 +53,7 @@ export const PopulationCompositionSection: FC<
         <div className={chartWrapper}>
           <PopulationCompositionChart
             className={chart}
+            key={theme}
             populationCompositions={state.value}
           />
         </div>
