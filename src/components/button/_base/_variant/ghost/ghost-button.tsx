@@ -27,7 +27,6 @@ const style = cva({
     display: 'inline-grid',
     gridAutoFlow: 'column',
     alignItems: 'center',
-    width: 'full',
     borderRadius: 'md',
     cursor: 'pointer',
     textBox: 'trim-both cap alphabetic',
