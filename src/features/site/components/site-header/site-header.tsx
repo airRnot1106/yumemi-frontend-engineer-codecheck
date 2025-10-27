@@ -15,7 +15,7 @@ export const SiteHeader: FC<SiteHeaderProps> = ({ className, ...rest }) => {
       <div className={menu}>
         <SiteThemeSwitchDropdown />
         <LinkButton
-          href="https://github.com/airRnot1106/yumemi-frontend-coding-exam"
+          href="https://github.com/airRnot1106/yumemi-frontend-engineer-codecheck"
           variant="ghost"
         >
           <SiGithub size="32" />
