@@ -29,7 +29,9 @@ export const PopulationCompositionSection: FC<
   // Note: 未選択時から選択したときのみローディングを表示する
   const isPending = _isPending && state.value.length === 0;
 
-  const { section, legend, loading, chartWrapper, chart } = style();
+  const isUnselected = !_isPending && state.value.length === 0;
+
+  const { section, legend, loading, chartWrapper, chart, unselected } = style();
 
   return (
     <section className={cx(section, className)} {...rest}>
@@ -53,12 +55,24 @@ export const PopulationCompositionSection: FC<
           />
         </div>
       )}
+      {isUnselected && (
+        <div className={unselected}>
+          <span>都道府県を選択してください</span>
+        </div>
+      )}
     </section>
   );
 };
 
 const style = sva({
-  slots: ['section', 'legend', 'loading', 'chartWrapper', 'chart'],
+  slots: [
+    'section',
+    'legend',
+    'loading',
+    'chartWrapper',
+    'chart',
+    'unselected',
+  ],
   base: {
     section: {
       display: 'grid',
@@ -89,6 +103,14 @@ const style = sva({
     },
     chart: {
       minWidth: '48rem',
+    },
+    unselected: {
+      display: 'grid',
+      placeContent: 'center',
+      padding: '16',
+      fontSize: 'xl',
+      width: 'full',
+      height: 'full',
     },
   },
 });
