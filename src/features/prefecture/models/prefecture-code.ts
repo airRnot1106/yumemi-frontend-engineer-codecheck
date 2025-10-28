@@ -34,7 +34,7 @@ const searchParamsKey = 'prefectures';
 
 const searchParamsParser = createParser({
   parse(queryValue) {
-    const values = queryValue.split(',');
+    const values = queryValue.split(',').filter((v) => v !== '');
     const codes = values
       .map((value) => create(Number(value)))
       .filter(R.isSuccess)
