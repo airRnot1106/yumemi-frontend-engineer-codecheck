@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       data-theme={SiteTheme.schema.enum.system}
-      lang="en"
+      lang="ja"
       suppressHydrationWarning
     >
       <head>
